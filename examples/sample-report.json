@@ -1,0 +1,57 @@
+{
+  "tool": "allowance-guard-agent",
+  "chain": "BNB Smart Chain (chainId 56)",
+  "wallet": "0x32E5…76E9",
+  "scannedBlocks": {
+    "from": 133381022,
+    "to": 133681021
+  },
+  "generatedAt": "2026-11-15T05:38:29.796Z",
+  "note": "Read-only scan — no transaction was built, signed, or sent.",
+  "findings": [
+    {
+      "token": "JAGENT",
+      "tokenAddress": "0x8e6442663a4f8c50b6132c68d42a30e7dfe4ae15",
+      "spender": "0x4fd2ea04a6d3accecfcaaf84f095c33efb14b7f9",
+      "spenderType": "contract",
+      "allowanceRaw": "0",
+      "allowance": "0.0",
+      "decimals": 18,
+      "approvalEvents": 2,
+      "lastApprovalBlock": 133579449,
+      "risk": "NONE",
+      "verdict": "Allowance is zero — no current exposure. An approval existed in the history and has been revoked or fully used."
+    },
+    {
+      "token": "USDT",
+      "tokenAddress": "0x55d398326f99059ff775485246999027b3197955",
+      "spender": "0x4fd2ea04a6d3accecfcaaf84f095c33efb14b7f9",
+      "spenderType": "contract",
+      "allowanceRaw": "0",
+      "allowance": "0.0",
+      "decimals": 18,
+      "approvalEvents": 9,
+      "lastApprovalBlock": 133579441,
+      "risk": "NONE",
+      "verdict": "Allowance is zero — no current exposure. An approval existed in the history and has been revoked or fully used."
+    },
+    {
+      "token": "USDT",
+      "tokenAddress": "0x55d398326f99059ff775485246999027b3197955",
+      "spender": "0x3643a907f875fa9b740e1c0747e91b5aa5222ab8",
+      "spenderType": "contract",
+      "allowanceRaw": "0",
+      "allowance": "0.0",
+      "decimals": 18,
+      "approvalEvents": 7,
+      "lastApprovalBlock": 133579445,
+      "risk": "NONE",
+      "verdict": "Allowance is zero — no current exposure. An approval existed in the history and has been revoked or fully used."
+    }
+  ],
+  "summary": {
+    "pairsFound": 3,
+    "activeAllowances": 0,
+    "unlimited": 0
+  }
+}
