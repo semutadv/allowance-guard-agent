@@ -47,12 +47,16 @@ public BSC RPCs, no backend, no keys held by the scanner.
 
 **Endpoint**
 
-PUBLIC ENDPOINT: <to be filled — see notes>
+PUBLIC ENDPOINT (demo page, GitHub Pages):
+https://semutadv.github.io/allowance-guard-agent/
 
-The agent is operated as a supervised service by its operator (it audits
-on request and on a schedule, and reports to the operator for approval);
-a public demo endpoint is being arranged and will be filled in here
-before the submission is sent.
+The scanner itself is a local Node.js CLI (no backend, no keys held); this
+public page is its demo endpoint — it shows what the agent does, the real
+2026-11-14 case study, and a sample post-revoke report, with run
+instructions. A live scan runs on demand from the CLI in the repository.
+Status: demo page committed (index.html); publish step (push + enable
+GitHub Pages) to be completed before submitting the form — verify the URL
+returns 200 first.
 
 **zkVerify angle (optional)**
 
