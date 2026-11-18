@@ -62,6 +62,15 @@ balance. It holds no funds, moves no funds, asks for no token approvals,
 has no owner and no admin functions, and the registry address is an
 immutable fixed at deployment.
 
+**First recorded check (proof the gate works, 2026-11-18):** the
+project's own Agentic Wallet (`morg.ai`) ran the scanner over its last
+300.000 blocks (14 approval pairs in history, 0 live allowances —
+`examples/report-2026-11-18.json`, report hash
+`0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470`)
+and recorded it on-chain: tx
+`0x1e28de33115c4d549223ac36d77919724e14b4700c56b7a2225c8725b460e8b7`.
+Registry state after: totalChecks 1, uniqueGuardians 1.
+
 **How to try it:**
 
 1. Run the scanner: `node index.js <your address> --json` (read-only).
