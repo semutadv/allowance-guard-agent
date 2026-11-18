@@ -3,29 +3,91 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Allowance Guard — public demo</title>
+<title>Allowance Guard — Guardian Portal</title>
 <style>
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:720px;margin:40px auto;padding:0 20px;line-height:1.6;color:#1a1a1a}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:760px;margin:40px auto;padding:0 20px;line-height:1.6;color:#1a1a1a}
 code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 pre{background:#f6f6f6;padding:14px;border-radius:8px;overflow:auto}
 h1{font-size:1.6em} h2{font-size:1.2em;margin-top:2em}
 .note{border-left:4px solid #c90;padding:8px 14px;background:#fff8e6}
+.card{border:1px solid #ddd;border-radius:10px;padding:16px 18px;margin:16px 0}
+button{background:#1a1a1a;color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:1em;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,textarea{width:100%;box-sizing:border-box;padding:8px;border:1px solid #bbb;border-radius:6px;font:inherit}
+label{display:block;margin:10px 0 4px;font-weight:600}
+.grid{display:flex;gap:16px;flex-wrap:wrap}
+.grid .stat{flex:1;min-width:140px;text-align:center}
+.stat b{font-size:1.5em;display:block}
+.ok{color:#0a7a28}.bad{color:#b00020}
+small{color:#555}
 </style>
 </head>
 <body>
-<h1>Allowance Guard</h1>
-<p>A read-only wallet-security agent for BNB Smart Chain (chainId 56).
-It answers one question for its operator at any time: <strong>right now, who can
-move my tokens, and how much?</strong></p>
-<p class="note"><strong>Public demo page.</strong> The scanner itself is a local
-Node.js CLI (no backend, no keys held) — this page is its public demo endpoint
-for the Agent Games Season 01 Wildcard submission. It shows a real audit
-result; a live scan runs on demand from the CLI in the repository.</p>
-<h2>What it does</h2>
+<h1>Allowance Guard — Guardian Portal</h1>
+<p>Allowance Guard is a read-only wallet-security agent for BNB Smart Chain
+(chainId 56). It answers one question for its operator at any time:
+<strong>right now, who can move my tokens, and how much?</strong> It audits a
+wallet's live ERC-20 approvals and reports the standing exposure in plain
+language.</p>
+<p>This portal is the on-chain layer built for the
+<strong>Binance Agent ID Hackathon</strong>: after running an audit, a
+<strong>Binance Agent ID</strong> holder anchors the audit's summary in the
+<a href="https://bscscan.com/address/0x795c0c9Be98fFb872339fFc8100E9b8a66378496">AllowanceGuardRegistry</a>
+contract on BSC. The contract only accepts calls from addresses that hold an
+Agent ID, so the registry is a public, verifiable record of Agent ID holders
+who actively guard their wallets.</p>
+
+<div class="card">
+<h2 style="margin-top:0">Registry — live counters</h2>
+<div class="grid">
+<div class="stat"><b id="statGuardians">…</b>Agent ID guardians</div>
+<div class="stat"><b id="statChecks">…</b>security checks recorded</div>
+</div>
+<p><small>Contract:
+<a href="https://bscscan.com/address/0x795c0c9Be98fFb872339fFc8100E9b8a66378496">0x795c…8496</a>
+· Agent ID registry:
+<a href="https://bscscan.com/address/0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F">0x60B9…022F</a> (SPACE ID)</small></p>
+</div>
+
+<div class="card">
+<h2 style="margin-top:0">Record your security check</h2>
+<ol>
+<li>Run the audit locally with the CLI below
+(<code>node index.js &lt;your address&gt; --json</code>) — the scanner is
+read-only and never signs anything.</li>
+<li>Connect the wallet that holds your Agent ID and paste the JSON report.
+This page hashes the report in your browser; only the hash and the two
+summary counts go on-chain.</li>
+<li>Confirm the <code>recordCheck</code> transaction in your own wallet.
+Your wallet pays a small BSC gas fee. This contract never asks for any
+token approval and cannot move your funds.</li>
+</ol>
+<button id="btnConnect">Connect wallet</button>
+<p id="walletLine"><small>No wallet connected.</small></p>
+<div id="recordForm" style="display:none">
+<p id="agentIdLine"></p>
+<label for="inScanned">Approvals scanned (distinct token/spender pairs)</label>
+<input id="inScanned" type="number" min="0" value="0">
+<label for="inRisky">Risky approvals (live, non-zero allowance)</label>
+<input id="inRisky" type="number" min="0" value="0">
+<label for="inReport">Audit report JSON (optional — hashed locally, never uploaded)</label>
+<textarea id="inReport" rows="5" placeholder='{"tool":"allowance-guard-agent", ...}'></textarea>
+<p><small>Report hash: <code id="hashOut">0x0000…0000 (no report pasted)</code></small></p>
+<button id="btnRecord" disabled>Record check on-chain</button>
+<p id="txLine"></p>
+</div>
+<p class="note"><strong>Safety:</strong> recording a check is a transaction
+you sign and pay gas for, from your own wallet. Allowance Guard never asks
+you to approve token spending, never collects keys or seed phrases, and
+promises no returns — it is a security record, nothing else.</p>
+</div>
+
+<h2>What the agent does</h2>
 <ol>
 <li><strong>Scan</strong> — walks the wallet's ERC-20 <code>Approval</code> event history on BSC and collects every distinct (token, spender) pair.</li>
 <li><strong>Classify</strong> — reads the <em>live</em> <code>allowance()</code> for each pair (history alone is not exposure), types each spender (wallet vs contract), flags unlimited or very large allowances.</li>
 <li><strong>Report</strong> — structured JSON + readable table, with a plain-language verdict per line.</li>
+<li><strong>Anchor</strong> — an Agent ID holder records the audit summary on-chain in the AllowanceGuardRegistry (this page).</li>
 <li><strong>Human approves</strong> — the scanner never signs anything. A revocation is prepared as a preview and executed only on the operator's explicit per-action approval, then re-read to confirm the allowance is exactly 0.</li>
 </ol>
 <h2>Real case study — 2026-11-14</h2>
@@ -37,13 +99,109 @@ approval, all three were revoked on-chain and verified back as exactly 0.
 Total fees ≈ Rp68.</p>
 <p>Sample report (post-revoke, all allowances 0):
 <a href="https://github.com/semutadv/allowance-guard-agent/blob/main/examples/sample-report.json">examples/sample-report.json</a></p>
-<h2>Run it</h2>
+<h2>Run the scanner</h2>
 <pre>git clone https://github.com/semutadv/allowance-guard-agent.git
 cd allowance-guard-agent
 npm install
-node index.js --wallet &lt;address&gt;</pre>
+node index.js &lt;walletAddress&gt; [--blocks 300000] [--rpc &lt;url&gt;] [--json]</pre>
 <h2>Source</h2>
-<p><a href="https://github.com/semutadv/allowance-guard-agent">github.com/semutadv/allowance-guard-agent</a></p>
-<p><small>Read-only by design. No transaction is built, signed, or sent by the scanner.</small></p>
+<p><a href="https://github.com/semutadv/allowance-guard-agent">github.com/semutadv/allowance-guard-agent</a> — scanner (MIT), the
+<a href="https://github.com/semutadv/allowance-guard-agent/blob/main/contracts/AllowanceGuardRegistry.sol">registry contract</a>
+(source verified on-chain), and its tests.</p>
+<p><small>Read-only by design. The scanner builds, signs, and sends no transaction.</small></p>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script>
+const REGISTRY = '0x795c0c9Be98fFb872339fFc8100E9b8a66378496';
+const AGENT_ID = '0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F';
+const READ_RPC = 'https://bsc-rpc.publicnode.com';
+const REG_ABI = [
+  'function totalChecks() view returns (uint256)',
+  'function uniqueGuardians() view returns (uint256)',
+  'function checksOf(address) view returns (uint256)',
+  'function lastCheckAt(address) view returns (uint256)',
+  'function lastRiskyApprovals(address) view returns (uint256)',
+  'function holdsAgentId(address) view returns (bool)',
+  'function recordCheck(uint256 approvalsScanned, uint256 riskyApprovals, bytes32 reportHash)'
+];
+let signer = null, account = null;
+
+const readProvider = new ethers.JsonRpcProvider(READ_RPC, 56, { staticNetwork: true });
+const readContract = new ethers.Contract(REGISTRY, REG_ABI, readProvider);
+
+async function loadCounters() {
+  try {
+    const [g, t] = await Promise.all([readContract.uniqueGuardians(), readContract.totalChecks()]);
+    document.getElementById('statGuardians').textContent = g.toString();
+    document.getElementById('statChecks').textContent = t.toString();
+  } catch (e) { /* leave placeholders */ }
+}
+loadCounters();
+
+function currentHash() {
+  const text = document.getElementById('inReport').value.trim();
+  if (!text) return ethers.ZeroHash;
+  return ethers.keccak256(ethers.toUtf8Bytes(text));
+}
+document.getElementById('inReport').addEventListener('input', () => {
+  const text = document.getElementById('inReport').value.trim();
+  document.getElementById('hashOut').textContent = text ? currentHash() : '0x0000…0000 (no report pasted)';
+  // If the pasted JSON is an Allowance Guard report, prefill the counts.
+  try {
+    const r = JSON.parse(text);
+    if (r && r.summary) {
+      document.getElementById('inScanned').value = r.summary.pairsFound ?? 0;
+      document.getElementById('inRisky').value = r.summary.activeAllowances ?? 0;
+    }
+  } catch (e) { /* not JSON yet */ }
+});
+
+document.getElementById('btnConnect').addEventListener('click', async () => {
+  const line = document.getElementById('walletLine');
+  if (!window.ethereum) {
+    line.innerHTML = '<span class="bad">No wallet found in this browser. Open this page in your wallet\'s dApp browser or a browser with a wallet extension.</span>';
+    return;
+  }
+  try {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const network = await provider.getNetwork();
+    if (network.chainId !== 56n) {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x38' }] });
+    }
+    signer = await provider.getSigner();
+    account = await signer.getAddress();
+    line.innerHTML = 'Connected: <code>' + account + '</code>';
+    document.getElementById('recordForm').style.display = 'block';
+    const holds = await readContract.holdsAgentId(account);
+    const checks = await readContract.checksOf(account);
+    const idLine = document.getElementById('agentIdLine');
+    if (holds) {
+      idLine.innerHTML = '<span class="ok">✔ This wallet holds an Agent ID.</span> Checks recorded so far: ' + checks.toString();
+      document.getElementById('btnRecord').disabled = false;
+    } else {
+      idLine.innerHTML = '<span class="bad">✘ This wallet does not hold an Agent ID, so the contract will reject recording. Agent IDs are claimed in the Binance app (Wallet → Agent ID).</span>';
+    }
+  } catch (e) {
+    line.innerHTML = '<span class="bad">Connection failed: ' + (e.shortMessage || e.message) + '</span>';
+  }
+});
+
+document.getElementById('btnRecord').addEventListener('click', async () => {
+  const txLine = document.getElementById('txLine');
+  try {
+    const scanned = BigInt(document.getElementById('inScanned').value || '0');
+    const risky = BigInt(document.getElementById('inRisky').value || '0');
+    const write = new ethers.Contract(REGISTRY, REG_ABI, signer);
+    txLine.textContent = 'Waiting for your wallet confirmation…';
+    const tx = await write.recordCheck(scanned, risky, currentHash());
+    txLine.innerHTML = 'Sent: <a href="https://bscscan.com/tx/' + tx.hash + '">' + tx.hash + '</a> — waiting for confirmation…';
+    await tx.wait();
+    txLine.innerHTML = '<span class="ok">✔ Recorded.</span> <a href="https://bscscan.com/tx/' + tx.hash + '">View transaction</a>';
+    loadCounters();
+  } catch (e) {
+    txLine.innerHTML = '<span class="bad">Failed: ' + (e.shortMessage || e.message) + '</span>';
+  }
+});
+</script>
 </body>
 </html>

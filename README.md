@@ -48,6 +48,43 @@ tokens, and how much?*
 The scanner in this repository performs steps 1–3 and is **strictly
 read-only: it never builds, signs, or sends a transaction.**
 
+## Agent ID integration — the on-chain Guardian Registry
+
+Built for the **Binance Agent ID Hackathon** (Binance Wallet × BNB Chain):
+Allowance Guard's audit summary can be anchored on-chain by the wallet's
+owner — but only if that wallet actually holds a **Binance Agent ID**.
+
+- **Contract:** `AllowanceGuardRegistry`,
+  [`0x795c0c9Be98fFb872339fFc8100E9b8a66378496`](https://bscscan.com/address/0x795c0c9Be98fFb872339fFc8100E9b8a66378496)
+  on BNB Smart Chain. Source in [`contracts/AllowanceGuardRegistry.sol`](contracts/AllowanceGuardRegistry.sol),
+  verified with an exact match (Sourcify; mirrored on BscScan).
+- **Gate:** `recordCheck(approvalsScanned, riskyApprovals, reportHash)`
+  reverts unless `balanceOf(caller) > 0` on the SPACE ID Agent ID registry
+  (`0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F`). The contract never
+  resolves an Agent ID name to a wallet; it only checks the caller's own
+  balance.
+- **What it stores:** per-holder check counts, last-check timestamp, the
+  last report's risky-approval count, and an opaque hash commitment to
+  the off-chain report — never report contents.
+- **What it cannot do:** the contract holds no funds, moves no funds,
+  asks for no token approvals, and has **no owner and no admin
+  functions** — nothing can be paused, upgraded, re-pointed, or
+  withdrawn by anyone. The Agent ID registry address is an immutable
+  fixed at deployment.
+- **Portal:** the GitHub Pages site for this repo is the live Guardian
+  Portal — connect a wallet, see its Agent ID status, and record a check
+  signed by your own wallet:
+  https://semutadv.github.io/allowance-guard-agent/
+- **Tests:** `forge test` (see `test/AllowanceGuardRegistry.t.sol`) —
+  holder can record, non-holder reverts, guardian counting, zero-registry
+  rejection.
+
+Agent ID is the identity layer that makes the registry meaningful: a
+check recorded here is proof that a specific Agent ID holder ran a
+security audit at a specific time — the same "verify, don't trust"
+principle the scanner applies to allowances, applied to the agent
+ecosystem itself.
+
 ## Case study — 2026-11-14: the Telegram bot approvals
 
 This agent works continuously for its operator, hunting free mints on BSC.
